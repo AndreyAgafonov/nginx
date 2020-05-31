@@ -1,14 +1,14 @@
 ---
 # tasks file for ticket
 
-- name: Allow port {{ ticket_container_port_1 }} and {{ ticket_container_port_1 }} in firewalld
+- name: Allow port {{ ticket_container_port_1 }} in firewalld
   firewalld:
     port: "{{ item }}/tcp"
     permanent: yes
     state: enabled
   loop:
     - "{{ ticket_container_port_1 }}"
-    - "{{ ticket_container_port_2 }}"
+    #- "{{ ticket_container_port_2 }}"
 
 - name: restart_firewalld
   systemd:
@@ -60,7 +60,7 @@
 - name: Run ticket_ticket in Docker Container ("{{ ticket_work_dir }}")
   command: "docker-compose -f {{ ticket_work_dir }}/ticket/docker-compose.yml up -d"
 
-- name: Check container elasticsearch status (GET) ant return 200 code
+- name: Check container Ticket_to_ride status (GET) ant return 200 code
   uri:
     url: "{{ item }}"
     method: GET
@@ -72,4 +72,3 @@
     - health check
   with_items:
     - http://127.0.0.1:{{ ticket_container_port_1 }}
-    - http://127.0.0.1:{{ ticket_container_port_2 }}

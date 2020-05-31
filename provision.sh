@@ -11,8 +11,6 @@ cat /vagrant/ansible.pub >> ~vagrant/.ssh/authorized_keys
 #yum install -y python python-apt
 
 # Отключаю SELinux, ничего личного.
-#sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
-
+sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
 #Отключаю сразу, что бы не перезагружаться.:
-
-#setenforce 0
+setenforce 0

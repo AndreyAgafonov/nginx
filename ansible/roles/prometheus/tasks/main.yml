@@ -81,6 +81,42 @@
   with_items:
     - { src: prometheus.yml.j2, dest: "{{ prometheus_path_data }}/prometheus.yml" }
 
+- name: PROMETHEUS | Add list nginx targets backend
+  blockinfile:
+    path: "{{ prometheus_path_data }}/prometheus.yml"
+    block: |2
+              - {{ item }}:9100
+              - {{ item }}:9113
+    marker: "#{mark} Ansible managed Add list nginx config's {{ item }}"
+    insertafter: "      #Ansible managed adding servers targets"
+  loop: "{{ nginx_backend_ip }}"
+
+- name: PROMETHEUS | Add list nginx targets nginx group
+  blockinfile:
+    path: "{{ prometheus_path_data }}/prometheus.yml"
+    block: |2
+              - {{ item }}:9100
+              - {{ item }}:9113
+    marker: "#{mark} Ansible managed Add list nginx config's {{ item }}"
+    insertafter: "      #Ansible managed adding servers targets"
+  loop: "{{ nginx_group_ip }}"
+
+- name: PROMETHEUS | Add replacement for nginx_group
+  blockinfile:
+    path: "{{ prometheus_path_data }}/prometheus.yml"
+    block: |2
+            - source_labels: [__address__]
+              regex: "{{ item.ip }}:.*"
+              replacement: "{{ item.replacement }}.{{ domain }}"
+              target_label: 'dlog_hostname'
+    marker: "#{mark} Adding mapping backend {{ item }}"
+    insertafter: "        #Ansible managed replace"
+  loop:
+    - { ip: "{{ hostvars[groups.nginx_group[0]]['ansible_host'] }}", replacement: "{{ hostvars[groups.nginx_group[0]]['ansible_hostname'] }}"   }
+    - { ip: "{{ hostvars[groups.backend[0]]['ansible_host'] }}", replacement: "{{ hostvars[groups.backend[0]]['ansible_hostname'] }}"   }
+    - { ip: "{{ hostvars[groups.backend[1]]['ansible_host'] }}", replacement: "{{ hostvars[groups.backend[1]]['ansible_hostname'] }}"   }
+    - { ip: "{{ hostvars[groups.backend[2]]['ansible_host'] }}", replacement: "{{ hostvars[groups.backend[2]]['ansible_hostname'] }}"   }
+
 - name: PROMETHEUS | Run Prometheus in Docker Container ("{{ prometheus_path_data }}")1
   command: "docker-compose -f {{ prometheus_path_data }}/docker-compose.yml up -d"
 

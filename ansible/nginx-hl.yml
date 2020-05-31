@@ -1,26 +1,32 @@
 ---
 - name: nginx
-  hosts: nginx_group
-  become: true
-  become_method: sudo
-  gather_facts: yes
-  roles:
-    - ticket
-
-- name: nginx
-  hosts: beckend
+  hosts:
+    - nginx_group
+    - backend
   become: true
   become_method: sudo
   gather_facts: yes
   roles:
     - nginx
 
-- name: install node-exporter
-  hosts: nginx_group
+- name: Backend
+  hosts: backend
   become: true
+  become_method: sudo
+  gather_facts: yes
+  roles:
+    - ticket
+
+- name: Node-exporter
+  hosts:
+    - nginx_group
+    - backend
+  become: true
+  become_method: sudo
   gather_facts: yes
   roles:
     - node-exporter
+    - node-exporter-nginx
 
 - name: install prometheus
   hosts: prometheus
@@ -29,3 +35,4 @@
   roles:
     - prometheus
     - grafana
+    - node-exporter

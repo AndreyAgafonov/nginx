@@ -1,6 +1,5 @@
 ---
 # tasks file for nginx
-
 - name: NGINX | Allow port {{ nginx_port }} in firewalld
   firewalld:
     port: "{{ item }}/tcp"
@@ -39,7 +38,7 @@
 
   - name: NGINX | Create NGINX config file from template
     template:
-      src: nginx.conf.j2
+      src: "{{ group_names[0] }}.conf.j2"
       dest: /etc/nginx/nginx.conf
       mode: 0644
       owner: root
@@ -49,21 +48,29 @@
     tags:
       - nginx-configuration
 
-  # - name: NGINX| delivery home page
-  #   template:
-  #     src: ./files/index.html
-  #     dest: "{{ nginx_root_dir }}"
-  #     mode: 0644
-  #     owner: nginx
-  #     group: nginx
-  #   notify:
-  #     - reload nginx
-  #   tags:
-  #     - nginx-configuration
+
+
+
+  - name: NGINX | Add upstreams list to nginx config
+    blockinfile:
+      path: /etc/nginx/nginx.conf
+      block: |2
+                server {{ item }}:{{ nginx_backend_port }} max_fails=3;
+      marker: "        # {mark} ANSIBLE MANAGED - adding servers backend {{ item }}"
+      insertafter: "hash *"
+    loop:  "{{ nginx_backend_ip }}"
+    when: (inventory_hostname in groups.nginx_group)
 
   - name: NGINX| start service
     systemd:
       name: nginx
       state: started
       enabled: yes
+
+  - name: NGINX| restart service
+    systemd:
+      name: nginx
+      state: restarted
+      enabled: yes
+
   when: ansible_facts['distribution'] == 'CentOS'

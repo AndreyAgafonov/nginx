@@ -18,7 +18,7 @@ MACHINES = {
 
   :nginx => {
     :box_name => "centos/7",
-    :ip_addr => '172.20.1.15',
+    :ip_addr => '172.20.1.10',
     :machine_cpu => '1',
     :machine_memory => '512',
     },

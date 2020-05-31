@@ -1,8 +1,8 @@
 ---
 # tasks file for node-exporter
-- name: Allow port 9100 in firewalld
+- name: Allow port 9113 in firewalld
   firewalld:
-    port: "9100/tcp"
+    port: "9113/tcp"
     permanent: yes
     state: enabled
 
@@ -14,7 +14,7 @@
 
 - name: Create work directory if it does not exist
   file:
-    path: "{{ node_exporter_work_dir }}"
+    path: "{{ node_exporter_nginx_work_dir }}"
     state: directory
     mode: '0755'
 
@@ -31,49 +31,59 @@
     shell: /bin/false
     create_home: no
 
-- name: Download source code node_exporter
-  get_url:
-    url: https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz
-    dest: "{{ node_exporter_work_dir }}/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
-    mode: '0440'
-    timeout: 30
-  retries: 50
-  delay: 5
+# - name: Download source code node_exporter
+#   get_url:
+#     url: https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz
+#     dest: "{{ node_exporter_nginx_work_dir }}/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
+#     mode: '0440'
+#     timeout: 30
+#   retries: 50
+#   delay: 5
 
-- name: Unpacking source code
-  command: tar xvf node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz
-  args:
-    chdir: "{{ node_exporter_work_dir }}"
 
 - name: Get service list
   service_facts:
 
 - name: Check if server exist
   systemd:
-    name: node-exporter
+    name: node-exporter-nginx
     state: stopped
-  when: "'node-exporter.service' in services"
+  when: "'node-exporter-nginx.service' in services"
+
+- name: Copy executable file to node
+  copy:
+    src: files/nginx-prometheus-exporter
+    dest: "{{ node_exporter_nginx_work_dir }}/nginx-prometheus-exporter"
+    owner: root
+    group: root
+    mode: '0644'
+    backup: yes
 
 - name: Copy executable file to /usr/local/bin
-  command: cp node_exporter-{{ node_exporter_version }}.linux-amd64/node_exporter /usr/local/bin/node_exporter
-  args:
-    chdir: "{{ node_exporter_work_dir }}"
+  command: cp {{ node_exporter_nginx_work_dir }}/nginx-prometheus-exporter /usr/local/bin
 
 - name: Chown - Change owner file
-  command: chown {{ node_exporter_user }}:{{ node_exporter_group }} /usr/local/bin/node_exporter
+  file:
+    path: /usr/local/bin/nginx-prometheus-exporter
+    owner: "{{ node_exporter_user }}"
+    group: "{{ node_exporter_group }}"
+    mode: '0755'
+
+# - name: Chown - Change owner file
+#   command: chown {{ node_exporter_user }}:{{ node_exporter_group }} /usr/local/bin/nginx-prometheus-exporter
 
 - name: Create service file
   template:
-    src: node-exporter.service.j2
-    dest: /etc/systemd/system/node-exporter.service
+    src: node-exporter-nginx.service.j2
+    dest: /etc/systemd/system/node-exporter-nginx.service
     mode: '0744'
     owner: root
     group: root
-  notify: node_exporter_restart
+  notify: node_exporter_nginx_restart
 
-- name: node_exporter_start
+- name: node_exporter_nginx_start
   systemd:
-    name: node-exporter
+    name: node-exporter-nginx
     enabled: yes
     daemon_reload: yes
     state: started

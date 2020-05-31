@@ -1,12 +1,12 @@
 [Unit]
-Description=Node Exporter
+Description=Node Exporter for nginx metrics
 Wants=network-online.target
 After=network-online.target
 [Service]
 User={{ node_exporter_user }}
 Group={{ node_exporter_user }}
 Type=simple
-ExecStart=/usr/local/bin/node_exporter --collector.textfile.directory=/tmp
+ExecStart=/usr/local/bin/nginx-prometheus-exporter  -nginx.scrape-uri http://localhost:{{ nginx_port }}/nginx_status
 Restart=on-failure
 [Install]
 WantedBy=multi-user.target

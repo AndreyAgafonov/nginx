@@ -12,3 +12,20 @@ ticket_image: andreyagafonov/ticket_to_ride
 ticket_image_version: 1.1
 ticket_container_port_1: 8080
 ticket_container_port_2: 8090
+
+nginx_port: 80
+
+nginx_backend_hosts:
+    - "{{ hostvars[groups.backend[0]] }}"
+    - "{{ hostvars[groups.backend[1]] }}"
+    - "{{ hostvars[groups.backend[2]] }}"
+nginx_backend_ip:
+    - "{{ hostvars[groups.backend[0]]['ansible_host'] }}"
+    - "{{ hostvars[groups.backend[1]]['ansible_host'] }}"
+    - "{{ hostvars[groups.backend[2]]['ansible_host'] }}"
+
+nginx_group_hosts:
+    - "{{ hostvars[groups.nginx_group[0]] }}"
+
+nginx_group_ip:
+    - "{{ hostvars[groups.nginx_group[0]]['ansible_host'] }}"

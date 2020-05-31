@@ -11,12 +11,12 @@ services:
     #     aliases:
     #       - {{ ticket_container_port_1 }}.dockernet
 
-  {{ ticket_container_name_2 }}:
-    image: {{ ticket_image }}:{{ ticket_image_version }}
-    restart: always
-    container_name: {{ ticket_container_name_2 }}
-    ports:
-      - {{ ticket_container_port_2 }}:8080
+  # {{ ticket_container_name_2 }}:
+  #   image: {{ ticket_image }}:{{ ticket_image_version }}
+  #   restart: always
+  #   container_name: {{ ticket_container_name_2 }}
+  #   ports:
+  #     - {{ ticket_container_port_2 }}:8080
 #     networks:
 #       dockernet:
 #         aliases:
