@@ -1,0 +1,64 @@
+---
+- name: PREPARE |Install epel-release
+  yum:
+    name: "{{ packages }}"
+    state: present
+  vars:
+    packages:
+    - epel-release
+
+- name: PREPARE |Install packages
+  yum:
+    name: "{{ packages }}"
+    state: present
+  vars:
+    packages:
+    - ntp
+    - python2-cryptography
+    - mc
+    - checkpolicy
+    - policycoreutils-python
+    - python-pip
+    - checkpolicy
+
+- name: PREPARE |Set timezone
+  timezone:
+    name: "{{ ntp_timezone }}"
+
+- name: PREPARE |Enable ntpd
+  systemd:
+    name: ntpd
+    enabled: true
+    state: restarted
+
+# - name:  PREPARE | "Add all names to host (bacose we do not have a DNS Server)"
+#   template:
+#     src: hosts.j2
+#     dest: /etc/hosts
+#     mode: '0644'
+#     owner: root
+#     group: root
+
+- name:  PREPARE | Set hostname
+  hostname:
+    name: "{{ inventory_hostname }}"
+
+- name: PREPARE |Allow service ssh in firewalld
+  firewalld:
+    service: ssh
+    permanent: yes
+    state: enabled
+
+- name: PREPARE |Allow port {{ mongodb_port }} in firewalld
+  firewalld:
+    port: "22/tcp"
+    permanent: yes
+    state: enabled
+
+- name:  PREPARE |  Check  Firewalld  is Enabled and started
+  systemd:
+    name: firewalld
+    state: started
+    enabled: true
+
+...

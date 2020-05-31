@@ -1,0 +1,96 @@
+---
+- name: PROMETHEUS | Allow port {{ mongodb_port }} in firewalld
+  firewalld:
+    port: "{{ item }}/tcp"
+    permanent: yes
+    state: enabled
+  loop:
+    - "{{ prometheus_port }}"
+
+- name: PROMETHEUS | restart_firewalld
+  systemd:
+    name: firewalld
+    enabled: yes
+    state: restarted
+
+- name: PROMETHEUS | Prometheus, install python-setup-tools
+  yum:
+    name:
+    - python-pip
+    - python-devel
+    - gcc
+    - python-setuptools
+    state: latest
+
+- name: PROMETHEUS | install pip
+  pip:
+    name: pip
+    state: latest
+    extra_args: --upgrade
+
+- name: PROMETHEUS | Prometheus, install docker-compose for python
+  pip:
+    name:
+    - docker-compose
+
+- name: PROMETHEUS | Prometheus, Create work directory for elasticsearch {{ elasticsearch_data }}
+  file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: vagrant
+    group: root
+    mode: '0744'
+  with_items:
+    - { path: "{{ prometheus_path_data }}" }
+
+#     - { path: "{{ logstash_work_dir }}" }
+#     - { path: "{{ logstash_conf_dir }}" }
+#     - { path: "{{ logstash_data }}" }
+#     - { path: "{{ kibana_work_dir }}" }
+
+# - name: PROMETHEUS | Prometheus, deliveryt input,output and filter config for logstash {{ logstash_work_dir }}
+#   copy:
+#     backup: true
+#     owner: root
+#     group: root
+#     src: "{{ item.src }}"
+#     dest: "{{ item.dest }}"
+#   with_items:
+#     - { src: files/input.conf.j2, dest: "{{ logstash_conf_dir }}/input.conf" }
+#     - { src: files/filter.conf.j2, dest: "{{ logstash_conf_dir }}/filter.conf" }
+#     - { src: files/output.conf.j2, dest: "{{ logstash_conf_dir }}/output.conf" }
+
+# #====
+- name: PROMETHEUS | Prometheus, Delivery Docker-compose to a work Dir ("{{ prometheus_path_data }}/docker-compose.yml")
+  template:
+    backup: true
+    owner: root
+    group: root
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  with_items:
+    - { src: docker-compose.yml.j2, dest: "{{ prometheus_path_data }}/docker-compose.yml" }
+
+- name: PROMETHEUS | Prometheus, Delivery prometheus config to a work Dir ("{{ prometheus_path_data }}/prometheus.yaml")
+  template:
+    backup: true
+    owner: root
+    group: root
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  with_items:
+    - { src: prometheus.yml.j2, dest: "{{ prometheus_path_data }}/prometheus.yml" }
+
+- name: PROMETHEUS | Run Prometheus in Docker Container ("{{ prometheus_path_data }}")1
+  command: "docker-compose -f {{ prometheus_path_data }}/docker-compose.yml up -d"
+
+- name: PROMETHEUS | Check container elasticsearch status (GET) ant return 200 code
+  uri:
+    url: http://127.0.0.1:{{ prometheus_port }}
+    method: GET
+  register: result
+  until: result.status == 200
+  retries: 60
+  delay: 5
+  tags:
+    - health check

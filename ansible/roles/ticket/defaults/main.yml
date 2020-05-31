@@ -1,0 +1,9 @@
+---
+# defaults file for ticket
+ticket_work_dir: /opt
+ticket_container_name_1: ticket_to_ride_1
+ticket_container_name_2: ticket_to_ride_2
+ticket_image: andreyagafonov/ticket_to_ride
+ticket_image_version: 1.1
+ticket_container_port_1: 8080
+ticket_container_port_2: 8090

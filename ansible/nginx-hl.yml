@@ -1,0 +1,31 @@
+---
+- name: nginx
+  hosts: nginx_group
+  become: true
+  become_method: sudo
+  gather_facts: yes
+  roles:
+    - ticket
+
+- name: nginx
+  hosts: beckend
+  become: true
+  become_method: sudo
+  gather_facts: yes
+  roles:
+    - nginx
+
+- name: install node-exporter
+  hosts: nginx_group
+  become: true
+  gather_facts: yes
+  roles:
+    - node-exporter
+
+- name: install prometheus
+  hosts: prometheus
+  become: true
+  gather_facts: yes
+  roles:
+    - prometheus
+    - grafana

@@ -1,0 +1,12 @@
+galaxy_info:
+  author: Agafonov Andrey
+  description: Playbook for install Docker on Centos distr
+  company:  "cloud16.ru"
+  min_ansible_version: 2.9
+  galaxy_tags:
+    - kibana
+    - elasticsearch
+    - docker
+    - logstash
+dependencies:
+  - prepare

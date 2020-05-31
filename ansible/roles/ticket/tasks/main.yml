@@ -1,0 +1,75 @@
+---
+# tasks file for ticket
+
+- name: Allow port {{ ticket_container_port_1 }} and {{ ticket_container_port_1 }} in firewalld
+  firewalld:
+    port: "{{ item }}/tcp"
+    permanent: yes
+    state: enabled
+  loop:
+    - "{{ ticket_container_port_1 }}"
+    - "{{ ticket_container_port_2 }}"
+
+- name: restart_firewalld
+  systemd:
+    name: firewalld
+    enabled: yes
+    state: restarted
+
+- name: Install dependicies for python
+  yum:
+    name:
+    - python-pip
+    - python-devel
+    - gcc
+    - python-setuptools
+    state: latest
+
+- name: install pip
+  pip:
+    name: pip
+    state: latest
+    extra_args: --upgrade
+
+- name: install docker-compose for python
+  pip:
+    name:
+    - docker-compose
+
+- name: Create work dir
+  file:
+    path: "{{ ticket_work_dir }}/ticket"
+    state: directory
+    recurse: yes
+
+- name: delivery template to instance
+  template:
+      dest: "{{ ticket_work_dir }}/ticket/docker-compose.yml"
+      src:  docker-compose.yml.j2
+      mode: '0644'
+      owner: root
+      group: root
+
+# - name: Run ticket_ticket in Docker Container ("{{ ticket_work_dir }}")
+#   docker_compose:
+#     project_src: "{{ ticket_work_dir }}/ticket"
+#     build: yes
+#   tags:
+#     - docker-copmose
+
+- name: Run ticket_ticket in Docker Container ("{{ ticket_work_dir }}")
+  command: "docker-compose -f {{ ticket_work_dir }}/ticket/docker-compose.yml up -d"
+
+- name: Check container elasticsearch status (GET) ant return 200 code
+  uri:
+    url: "{{ item }}"
+    method: GET
+  register: result
+  until: result.status == 200
+  retries: 60
+  delay: 5
+  tags:
+    - health check
+  with_items:
+    - http://127.0.0.1:{{ ticket_container_port_1 }}
+    - http://127.0.0.1:{{ ticket_container_port_2 }}

@@ -1,0 +1,10 @@
+galaxy_info:
+  author: Andrey Agafonov
+  description: Deploy node-exportet
+  company: cloud16.ru
+  min_ansible_version: 2.9
+  galaxy_tags:
+    - node-exportet
+    - prometheus
+dependencies:
+   - prepare

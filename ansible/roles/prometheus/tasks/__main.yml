@@ -1,0 +1,11 @@
+---
+- name: test
+  debug:
+    msg:
+      - "{{ hostvars[groups.mongodb_shard2[1]]['ansible_host'] }}"
+      #- "{{ hostvars[ groups['mongodb_shard1'][0]]['mongodb_replicaset_name'] }}"
+
+    #.{{ domain }}:{{ mongodb_port }}"
+
+
+# hostvars[inventory_hostname]['ansible_env'].SSH_CONNECTION.split(' ')[2]

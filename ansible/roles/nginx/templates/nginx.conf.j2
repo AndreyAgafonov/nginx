@@ -1,0 +1,60 @@
+# {{ ansible_managed }}
+events {
+    worker_connections 1024;
+}
+
+http {
+##################<---- Redirect to https --->########################
+    # server {
+    #     listen 80 default_server;
+    #     return 301 https://$host$request_uri;
+    # }
+#####################################################################
+
+    upstream ticket_to_ride {
+        zone ticket_to_ride 64k;
+        #ip_hash;
+        hash $scheme$request_uri;
+        server localhost:{{ ticket_container_port_1 }} max_fails=3 ;
+        server localhost:{{ ticket_container_port_2 }} max_fails=3;
+        #sticky cookie route-next expires=24h path=/ httponly;
+    }
+
+
+    server {
+        listen {{ nginx_port }} default_server;
+        # listen 443 ssl http2;
+        # listen [::]:443 ssl http2;
+        # server_name ticket2ride.systemctl.su;
+        server_name "";
+        gzip on;
+        gzip_min_length 1000;
+        gzip_disable «msie6»;
+        gzip_types text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript application/javascript;
+        client_max_body_size 1G;
+        #SSL
+        #ssl_certificate /etc/letsencrypt/live/ticket2ride.systemctl.su/fullchain.pem;
+        #ssl_certificate_key /etc/letsencrypt/live/ticket2ride.systemctl.su/privkey.pem;
+        #ssl_trusted_certificate /etc/letsencrypt/live/ticket2ride.systemctl.su/chain.pem;
+        #security
+
+    location / {
+        proxy_pass http://ticket_to_ride/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_read_timeout 3600s;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        # proxy_set_header X-Forwarded-Proto "https";
+        #health_check interval=2s fails=2;
+    }
+    location /nginx_status {
+        stub_status on;
+        access_log   off;
+    }
+
+
+    }
+}

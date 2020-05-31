@@ -1,0 +1,16 @@
+---
+galaxy_info:
+  author: Agafonov Andrey
+  description: Prometheus monitoring system configuration and management
+  company:  "cloud16.ru"
+  min_ansible_version: 2.9
+  galaxy_tags:
+  - monitoring
+  - prometheus
+  - metrics
+  - alerts
+  - alerting
+
+dependencies:
+  # - prepare
+  - docker

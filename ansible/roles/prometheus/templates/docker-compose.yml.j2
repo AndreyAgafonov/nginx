@@ -1,0 +1,13 @@
+version: '2'
+services:
+  {{ prometheus_container_name }}:
+    image: prom/prometheus:{{ prometheus_version }}
+    restart: always
+    container_name: {{ prometheus_container_name }}
+    volumes:
+      - {{ prometheus_path_data }}/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - {{ prometheus_port }}:9090
+      #- {{ prometheus_port_mgmt }}:9100
+
+

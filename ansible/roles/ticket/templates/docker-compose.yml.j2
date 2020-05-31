@@ -1,0 +1,30 @@
+version: '2'
+services:
+  {{ ticket_container_name_1 }}:
+    image: {{ ticket_image }}:{{ ticket_image_version }}
+    restart: always
+    container_name: {{ ticket_container_name_1 }}
+    ports:
+      - {{ ticket_container_port_1 }}:8080
+    # networks:
+    #   dockernet:
+    #     aliases:
+    #       - {{ ticket_container_port_1 }}.dockernet
+
+  {{ ticket_container_name_2 }}:
+    image: {{ ticket_image }}:{{ ticket_image_version }}
+    restart: always
+    container_name: {{ ticket_container_name_2 }}
+    ports:
+      - {{ ticket_container_port_2 }}:8080
+#     networks:
+#       dockernet:
+#         aliases:
+#           - {{ ticket_container_port_2 }}.dockernet
+
+# networks:
+#   dockernet:
+#     external:
+#       name: globalnetwork
+
+

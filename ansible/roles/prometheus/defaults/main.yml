@@ -1,0 +1,5 @@
+prometheus_container_name: prometheus
+prometheus_version: v2.18.0-rc.1
+prometheus_path_data: /opt/prom
+prometheus_port: 9090
+prometheus_port_mgmt: 9100

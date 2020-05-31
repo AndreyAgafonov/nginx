@@ -1,0 +1,8 @@
+---
+# defaults file for grafana
+grafana_port: 3000
+grafana_panels:
+  - grafana-clock-panel
+  - btplc-alarm-box-panel
+  - jdbranham-diagram-panel
+  - agenty-flowcharting-panel

@@ -1,0 +1,34 @@
+---
+# tasks file for nginx
+- name: DOCKER | Install Docker
+  block:
+  - name: Install dependencies for install Docker
+    yum:
+      name: "{{ item }}"
+    loop:
+      - "{{ docker_prepakages }}"
+    tags:
+      - docker_pakage_depends
+      - packeges
+
+  - name: DOCKER | Add Docker Repo
+    shell: "yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo"
+
+  - name: DOCKER | Install Docker
+    yum:
+      name: "{{ item }}"
+    loop:
+    - "{{ docker_pakages }}"
+    notify:
+      - start docker
+    tags:
+      - docker_pakage_depends
+      - packeges
+
+  - name: DOCKER | start docker
+    systemd:
+      name: docker
+      enabled: yes
+      state: started
+
+  when: ansible_facts['distribution'] == 'CentOS'

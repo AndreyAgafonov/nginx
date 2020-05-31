@@ -1,0 +1,79 @@
+---
+# tasks file for node-exporter
+- name: Allow port 9100 in firewalld
+  firewalld:
+    port: "9100/tcp"
+    permanent: yes
+    state: enabled
+
+- name:  Check  Firewalld  is Enabled and started
+  systemd:
+    name: firewalld
+    state: restarted
+    enabled: true
+
+- name: Create work directory if it does not exist
+  file:
+    path: "{{ node_exporter_work_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Ensure group "{{ node_exporter_group }}" exists
+  group:
+    name: "{{ node_exporter_group }}"
+    state: present
+
+- name: Add the user {{ node_exporter_user }} and group {{ node_exporter_group }} for node_exporter
+  user:
+    name: "{{ node_exporter_user }}"
+    group: "{{ node_exporter_group }}"
+    comment: User for node_exporter
+    shell: /bin/false
+    create_home: no
+
+- name: Download source code node_exporter
+  get_url:
+    url: https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz
+    dest: "{{ node_exporter_work_dir }}/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
+    mode: '0440'
+    timeout: 30
+  retries: 50
+  delay: 5
+
+- name: Unpacking source code
+  command: tar xvf node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz
+  args:
+    chdir: "{{ node_exporter_work_dir }}"
+
+- name: Get service list
+  service_facts:
+
+- name: Check if server exist
+  systemd:
+    name: node-exporter
+    state: stopped
+  when: "'node-exporter.service' in services"
+
+- name: Copy executable file to /usr/local/bin
+  command: cp node_exporter-{{ node_exporter_version }}.linux-amd64/node_exporter /usr/local/bin/node_exporter
+  args:
+    chdir: "{{ node_exporter_work_dir }}"
+
+- name: Chown - Change owner file
+  command: chown {{ node_exporter_user }}:{{ node_exporter_group }} /usr/local/bin/node_exporter
+
+- name: Create service file
+  template:
+    src: node-exporter.service.j2
+    dest: /etc/systemd/system/node-exporter.service
+    mode: '0744'
+    owner: root
+    group: root
+  notify: node_exporter_restart
+
+- name: node_exporter_start
+  systemd:
+    name: node-exporter
+    enabled: yes
+    daemon_reload: yes
+    state: started

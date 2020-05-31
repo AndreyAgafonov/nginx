@@ -1,0 +1,54 @@
+global:
+  scrape_interval: 10s
+  scrape_timeout: 10s
+  evaluation_interval: 1m
+scrape_configs:
+#<-----< PROMETHEUS >----->
+  - job_name: 'Prometheus'
+    static_configs:
+      - targets:
+        - '{{ inventory_hostname }}:{{ prometheus_port }}'
+        - '{{ inventory_hostname }}:{{ prometheus_port_mgmt }}'
+        labels:
+          env: 'Otus'
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: '(.*):(.*)'
+        replacement: $1
+        target_label: instance
+      - source_labels: [__address__]
+        regex: '.*:{{ prometheus_port_mgmt }}'
+        replacement: 'node_exporter'
+        target_label: exporter
+      - source_labels: [__address__]
+        regex: '.*:{{ prometheus_port }}'
+        replacement: 'prometheus_server'
+        target_label: exporter
+      - source_labels: [__address__]
+        regex: '172.20.1.220:.*'
+        replacement: 'prom-sauron.cloud16.home'
+        target_label: 'dlog_hostname'
+#<-----< nginx >----->
+  - job_name: 'NGINX'
+    scrape_interval: 10s
+    scrape_timeout: 10s
+    static_configs:
+      - targets:
+        - '{{ hostvars[groups.nginx_group[0]]['ansible_host'] }}:9100'
+        labels:
+          env: 'Otus'
+          role: NGINX
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: '(.*):(.*)'
+        replacement: $1
+        target_label: instance
+      - source_labels: [__address__]
+        regex: '.*:9216'
+        replacement: 'mongodb_exporter'
+        target_label: exporter
+      - source_labels: [__address__]
+        regex: '172.20.1.15:.*'
+        replacement: 'nginx.cloud16.home'
+        target_label: 'dlog_hostname'
+

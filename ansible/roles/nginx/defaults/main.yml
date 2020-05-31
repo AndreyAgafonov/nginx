@@ -1,0 +1,5 @@
+---
+# defaults file for nginx
+nginx_pakages:
+    - nginx
+nginx_port: 80
