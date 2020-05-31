@@ -14,7 +14,7 @@ http {
     upstream ticket_to_ride {
         zone ticket_to_ride 64k;
         #ip_hash;
-        hash $scheme$request_uri;
+        hash $scheme$request_uri consistent;
         #server :{{ nginx_backend_port }} max_fails=3 ;
         #server localhost:{{ nginx_backend_port }} max_fails=3;
         #sticky cookie route-next expires=24h path=/ httponly;
