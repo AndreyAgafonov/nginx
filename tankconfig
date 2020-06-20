@@ -1,0 +1,23 @@
+phantom:
+  address: 172.20.1.10:80 # [Target's address]:[target's port]
+  instances: 8
+  uris:
+    - /nginx_status
+    # - /game/5953a324b0
+    # - /game/20f35fe907
+  load_profile:
+    load_type: rps # schedule load by defining requests per second
+    #schedule: line(20, 250, 60s)
+    schedule: const(600, 300)
+    #step(700, 1250, 15, 5s)
+    #schedule: const(250,30m) # starting from 1rps growing linearly to 10rps during 10 minutes
+    #schedule:
+#    schedule: const(200, 20)
+  headers:
+      - "[Host:Ticket_to_ride]"
+#header_http: "1.1"
+
+console:
+  enabled: true # enable console output
+telegraf:
+  enabled: false # let's disable telegraf monitoring for the first time

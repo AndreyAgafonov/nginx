@@ -1,0 +1,12 @@
+version: '2'
+services:
+  yandextank:
+    image: direvius/yandex-tank
+    #restart: always
+    container_name: yandextank
+    volumes:
+      - ./:/var/loadtest
+      - $SSH_AUTH_SOCK:/ssh-agent
+    environment:
+      - SSH_AUTH_SOCK=/ssh-agent
+    command: [ "yandex-tank", "-c", "/var/loadtest/tankconfig"]
